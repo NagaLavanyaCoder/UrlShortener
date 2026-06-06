@@ -1,150 +1,150 @@
-URL Shortener System (Spring Boot + Redis + Base62)
- 1. Project Overview
+# URL Shortener Service (Spring Boot + Redis + Base62)
 
-This project is a high-performance URL shortening service that converts long URLs into short, unique aliases using Base62 encoding, and stores mappings in Redis for fast retrieval.
+## 1. Overview
+This project is a URL Shortener system that converts long URLs into short URLs and redirects users back to the original URL. It uses Spring Boot for backend development, Redis for fast key-value storage, and Base62 encoding for generating short unique codes.
 
-It behaves like:
+---
 
-https://www.example.com/very/long/url → http://short.ly/aZ91k
-2. Objectives
-Convert long URLs into short URLs
-Redirect short URL → original URL
-Ensure fast lookup using Redis
-Generate unique short codes using Base62
-Handle high traffic efficiently
-3. System Architecture
-Flow:
-Client → Spring Boot API → Service Layer → Redis DB
-                                ↓
-                         Base62 Encoder
-Components:
-Controller → Handles HTTP requests
-Service Layer → Business logic
-Redis Repository → Key-value storage
-Base62 Encoder → Short code generation
-⚙️ 4. Tech Stack
-Java 8+
-Spring Boot
-Spring Web
-Redis (Cache / NoSQL key-value store)
-Maven
-Base62 Encoding logic
-5. Core Concept: Base62 Encoding
+## 2. Features
+- Convert long URLs into short URLs
+- Redirect short URL to original URL
+- Fast lookup using Redis
+- Unique short code generation using Base62
+- High performance and scalable design
 
+---
+
+## 3. Tech Stack
+- Java
+- Spring Boot
+- Spring Web
+- Redis (In-memory database)
+- Maven
+- Base62 Encoding
+
+---
+
+## 4. Architecture Flow
+Client → Spring Boot Controller → Service Layer → Redis  
+                                     ↓  
+                               Base62 Encoder  
+
+---
+
+## 5. Working Flow
+
+### 5.1 URL Shortening
+1. User sends long URL
+2. System generates unique numeric ID
+3. Convert ID into Base62 format
+4. Store in Redis as:
+   shortCode → longURL
+5. Return short URL to user
+
+---
+
+### 5.2 URL Redirection
+1. User clicks short URL
+2. Extract short code
+3. Fetch original URL from Redis
+4. Redirect using HTTP 302
+
+---
+
+## 6. Base62 Encoding
 Base62 uses:
-
-[0-9, a-z, A-Z] → 62 characters
-Why Base62?
-Shorter URLs
-URL-safe (no special characters)
-Efficient representation of numeric IDs
-Example:
-ID: 125
-Base62 → "cb"
-6. URL Generation Strategy
-Option Used in Most Projects:
- Incrementing Counter + Base62
-Maintain auto-increment ID
-Convert ID → Base62 string
-Use it as short URL key
+0-9 + a-z + A-Z (62 characters)
 
 Example:
+ID → Base62  
+125 → cb  
+1001 → g7  
 
-ID = 1001
-Base62 = "g7"
-Short URL = /g7
-7. Redis Storage Design
-Key-Value Structure:
-Key:   shortCode (e.g., g7)
-Value: originalLongUrl
+Purpose:
+- Compact representation
+- URL-safe characters
+- Unique short keys
+
+---
+
+## 7. Redis Data Structure
+Key → Value mapping:
+
+shortCode → originalLongURL
+
 Example:
-g7 → https://www.google.com/maps/...
-abc → https://github.com/user/repo
- 8. API Design
-1. Create Short URL
+g7 → https://google.com/maps  
+abc123 → https://github.com/user/repo  
+
+---
+
+## 8. API Endpoints
+
+### 8.1 Create Short URL
 POST /api/shorten
+
 Request:
 {
-  "longUrl": "https://www.example.com/some/very/long/url"
+  "longUrl": "https://example.com/very/long/url"
 }
+
 Response:
 {
   "shortUrl": "http://short.ly/g7"
 }
-2. Redirect URL
+
+---
+
+### 8.2 Redirect URL
 GET /{shortCode}
+
 Example:
 GET /g7
+
 Action:
-Fetch original URL from Redis
-Redirect (HTTP 302) to original URL
- 9. Internal Working Flow
-Step 1: URL Shortening
-User sends long URL
-System generates unique ID
-Convert ID → Base62
+Redirect to original URL (HTTP 302)
 
-Store in Redis:
+---
 
-g7 → longUrl
-Return short URL
-Step 2: Redirection
-User clicks short URL
-Extract short code
-Query Redis
-Get original URL
-Redirect user
- 10. Why Redis?
-In-memory storage → very fast (sub-millisecond)
-Ideal for key-value lookup
-Supports TTL (optional expiry)
-Handles high read traffic efficiently
- 11. Optional Enhancements (Good for Interviews)
-1. TTL (Expiry Links)
-Auto-expire links after N days
-2. Custom Alias
-/my-github → user-defined
-3. Click Tracking
-Store analytics in Redis or DB
-4. Rate Limiting
-Prevent abuse
-5. Duplicate URL handling
-Same long URL → same short code (optional optimization)
- 12. Edge Cases Handled
-Same URL shortening multiple times
-Invalid short code access
-Redis cache miss
-Extremely long URLs
-Collision handling (if using hash-based approach)
- 13. Sample Code Logic (Core Idea)
-Base62 Encoding:
-public String encode(long id) {
-    String chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    StringBuilder sb = new StringBuilder();
+## 9. Components
 
-    while (id > 0) {
-        sb.append(chars.charAt((int)(id % 62)));
-        id /= 62;
-    }
-    return sb.reverse().toString();
-}
-14. Interview Explanation (How to Speak)
+### Controller
+Handles API requests
 
-You can say:
+### Service
+Contains business logic for encoding and decoding
 
-“I built a URL shortener using Spring Boot where I used Base62 encoding to generate unique short keys from an incrementing ID. I stored the mapping in Redis for fast retrieval. When a user hits a short URL, the service fetches the original URL from Redis and redirects using HTTP 302. The system is designed for high performance and low latency.”
- 15. Common Interview Questions
-Q1: Why Base62?
-Short, URL-safe, compact representation
-Q2: Why Redis?
-Fast in-memory key-value store
-Ideal for real-time redirection systems
-Q3: How do you ensure uniqueness?
-Auto-increment ID or distributed ID generator
-Q4: What happens if Redis crashes?
-Data loss risk → solved using persistence (RDB/AOF)
-Q5: How to scale?
-Redis clustering + load balancer + stateless service
-16. One-Line Summary
+### Redis Repository
+Stores and retrieves URL mappings
 
-A high-performance URL shortener built using Spring Boot, Redis, and Base62 encoding that converts long URLs into compact, unique short links and supports fast redirection.
+### Base62 Encoder
+Converts numeric ID into short string
+
+---
+
+## 10. Advantages
+- Fast response time
+- Low latency using Redis
+- Scalable architecture
+- Simple and efficient design
+
+---
+
+## 11. Edge Cases
+- Invalid short URL → return 404
+- Missing Redis key → handle gracefully
+- Duplicate URL handling (optional)
+
+---
+
+## 12. Enhancements
+- Add TTL expiry for URLs
+- Custom alias support
+- Click analytics tracking
+- Rate limiting
+- Authentication system
+
+---
+
+## 13. Summary
+A scalable URL Shortener system built using Spring Boot, Redis, and Base62 encoding that generates short URLs and provides fast redirection using in-memory storage.
