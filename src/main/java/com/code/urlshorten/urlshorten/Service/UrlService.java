@@ -2,6 +2,7 @@ package com.code.urlshorten.urlshorten.Service;
 
 import java.net.ResponseCache;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.cache.Cache;
 import org.springframework.cache.annotation.Cacheable;
@@ -32,6 +33,18 @@ public class UrlService {
 	public UrlResponse createShortUrl(UrlRequest urlRequest) {
 		
 		
+		String ShortCode = "";
+		if(null != urlRequest) {
+			Optional<UrlMapping> urlData = repository.findByOriginalUrl(urlRequest.getUrl());
+			if(urlData.isPresent()) {
+
+				ShortCode = urlData.get().getShortCode();
+
+				return UrlResponse.builder()
+						.shortUrl("http://localhost:8080/" + ShortCode)
+						.build(); 
+			}
+		}
 		//THIS is is like getter setter we are setting the data to the UrlMapping Entity
 		UrlMapping mapping = UrlMapping.builder()
 				.originalUrl(urlRequest.getUrl())
@@ -42,17 +55,19 @@ public class UrlService {
 		//saving the above mapping data using repository
 		mapping = repository.save(mapping);
 		
-		String shortCode = Base62Encoder.endcode(mapping.getId());
+		ShortCode = Base62Encoder.endcode(mapping.getId());
 		
-		mapping.setShortCode(shortCode);
+		mapping.setShortCode(ShortCode);
 		
 		repository.save(mapping);
 		
 		
 		//setting the response to UrlResponse Bean
+		
 		return UrlResponse.builder()
-				.shortUrl("http://localhost:8080/" + shortCode)
-				.build();
+				.shortUrl("http://localhost:8080/" + ShortCode)
+				.build(); 
+		
 	}
 	
 	
